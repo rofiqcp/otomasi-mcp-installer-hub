@@ -1,0 +1,31 @@
+name: Verify public MCP installers
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/verify_static.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: node --check portal/catalog.js
+  powershell:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse each installer (no execution, no privilege)
+        shell: pwsh
+        run: |
+          foreach ($name in 'plc','easyeda','fusion') {
+            $token=$null
+            $errors=$null
+            [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $pwd "scripts/$name.ps1"), [ref]$token, [ref]$errors) | Out-Null
+            if($errors.Count){$errors | Out-String | Write-Error; exit 1}
+            Write-Host "Parsed $name"
+          }

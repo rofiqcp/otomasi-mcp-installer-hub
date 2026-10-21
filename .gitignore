@@ -1,0 +1,13 @@
+.env
+.env.*
+*.log
+node_modules/
+__pycache__/
+*.p12
+*.key
+*.pem
+*.tgz
+tests/screenshots/
+tests/test_catalog.py
+*/.state/
+*/.venv/

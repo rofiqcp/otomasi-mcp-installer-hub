@@ -1,7 +1,7 @@
 name: Verify public MCP installers
 on:
   push:
-    branches: [main]
+    branches: [main, feat/portable-native-engines]
   pull_request:
 permissions:
   contents: read
@@ -11,6 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 tests/verify_static.py
+      - run: python3 tests/verify_engine_manifest.py
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
@@ -22,10 +23,19 @@ jobs:
       - name: Parse each installer (no execution, no privilege)
         shell: pwsh
         run: |
-          foreach ($name in 'plc','easyeda','fusion') {
+          foreach ($name in 'plc','easyeda','fusion','install-native-engine') {
             $token=$null
             $errors=$null
             [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $pwd "scripts/$name.ps1"), [ref]$token, [ref]$errors) | Out-Null
             if($errors.Count){$errors | Out-String | Write-Error; exit 1}
             Write-Host "Parsed $name"
           }
+      - name: Native installer dry-run never mutates host
+        shell: pwsh
+        run: |
+          $env:OTOMASI_INSTALL_DRY_RUN='1'
+          foreach($s in 'plc','easyeda','fusion') {
+            & ./scripts/install-native-engine.ps1 -Service $s
+            if(-not $?) { throw "Dry-run failed for $s" }
+          }
+          Remove-Item Env:OTOMASI_INSTALL_DRY_RUN

@@ -64,7 +64,7 @@ function Has-Python {
   if(-not $command){$command=Get-Command python.exe -ErrorAction SilentlyContinue}
   if(-not $command){return $false}
   $pyArgs=@('-c','import sys;assert sys.version_info >= (3,10)')
-  if($command.Name -like 'py*'){$pyArgs=@('-3')+$pyArgs}
+  if($command.Name -ieq 'py.exe'){$pyArgs=@('-3')+$pyArgs}
   & $command.Source @pyArgs 2>$null
   return $LASTEXITCODE -eq 0
 }
@@ -84,6 +84,7 @@ if($Service -in @('plc','fusion') -and -not (Has-Python)){
 foreach($p in @($base,$runtime,$engines)){New-Item -ItemType Directory -Force -Path $p|Out-Null}
 $target=Join-Path (Join-Path $engines $Service) $e.version
 if(Test-Path $target){Halt 'This release folder already exists. Use the update/verify workflow; never overwrite silently.'}
+$createdTarget=$false
 $staging=Join-Path $env:TEMP ('otomasi-mcp-'+$Service+'-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Force -Path $staging|Out-Null
 try {
@@ -111,6 +112,7 @@ try {
   if(-not (Test-Path $entry) -or -not (Test-Path $verify)){Halt 'Release must include install.ps1 and verify.ps1.'}
   New-Item -ItemType Directory -Force -Path (Split-Path $target -Parent)|Out-Null
   Move-Item -LiteralPath $extract -Destination $target
+  $createdTarget=$true
   Tell 'Running source-only engine setup in the interactive user account...'
   & (Join-Path $target 'engine\install.ps1') -Root $base -Service $Service
   if(-not $?){Halt 'Engine setup returned failure.'}
@@ -118,6 +120,9 @@ try {
   if(-not $?){Halt 'Engine verification did not pass.'}
   Tell ('VERIFIED '+$Service+' engine '+$e.version)
 }catch{
+  if($createdTarget -and (Test-Path $target)){
+    Remove-Item -LiteralPath $target -Recurse -Force -ErrorAction SilentlyContinue
+  }
   Tell 'Native engine deployment failed. The previous engine installation is left untouched.'
   throw
 }finally{

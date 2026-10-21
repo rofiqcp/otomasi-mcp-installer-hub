@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "development",
+  "generated_at": "2026-10-21",
+  "description": "Source-only engine releases to be populated after portability, license, broker and clean-PC acceptance. No native engine release is published as of this manifest.",
+  "distribution_policy": {
+    "secrets": "never",
+    "vendor_binaries": "official downloads; never redistribute without license",
+    "device_broker": "required for routing to individual PC"
+  },
+  "engines": {
+    "plc": {
+      "name": "WECON PLC MCP",
+      "platforms": [
+        "windows"
+      ],
+      "runtime": [
+        "node>=22",
+        "python>=3.10"
+      ],
+      "vendor": "WECON PLC Editor 1 / LX3V DLL",
+      "release_available": false,
+      "source_url": null,
+      "sha256": null,
+      "version": null,
+      "broker_compatible": false,
+      "hardware_writes_enabled": false,
+      "blocker": "Hard-coded WIN-OTO absolute paths, shared EasyEDA auth module, WECON native CLI/DLL dependency, missing per-device broker."
+    },
+    "easyeda": {
+      "name": "EasyEDA Pro MCP",
+      "platforms": [
+        "windows"
+      ],
+      "runtime": [
+        "node>=22",
+        "postgresql"
+      ],
+      "vendor": "EasyEDA Pro >= 4.1.60 installed desktop",
+      "release_available": false,
+      "source_url": null,
+      "sha256": null,
+      "version": null,
+      "broker_compatible": false,
+      "blocker": "WIN-OTO PostgreSQL service and OAuth, absolute editor paths, source-only database bootstrap and per-device broker not yet ported."
+    },
+    "fusion": {
+      "name": "Autodesk Fusion MCP",
+      "platforms": [
+        "windows"
+      ],
+      "runtime": [
+        "node>=22",
+        "python>=3.10"
+      ],
+      "vendor": "Installed/licensed Autodesk Fusion with built-in desktop MCP",
+      "release_available": false,
+      "source_url": null,
+      "sha256": null,
+      "version": null,
+      "broker_compatible": false,
+      "blocker": "Native Fusion app login/enablement, CAD gateway OAuth tied to legacy host, cloud endpoint 503 as last verified, no per-device broker."
+    }
+  }
+}
